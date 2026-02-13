@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from demoforge.config import Settings
 from demoforge.models import PipelineProgress
 from demoforge.pipeline import create_pipeline
+from demoforge.server.dependencies import get_app_settings
 from demoforge.server.routes.projects import load_project, save_project
 from demoforge.server.sse import create_sse_response, sse_manager
 
@@ -86,7 +87,7 @@ async def run_pipeline_task(project_id: str, settings: Settings) -> None:
 async def execute_pipeline(
     request: ExecutePipelineRequest,
     background_tasks: BackgroundTasks,
-    settings: Annotated[Settings, Depends()],
+    settings: Annotated[Settings, Depends(get_app_settings)],
 ) -> dict[str, str]:
     """Execute the pipeline for a project.
 
@@ -112,7 +113,10 @@ async def execute_pipeline(
 
 
 @router.get("/progress/{project_id}")
-async def get_pipeline_progress(project_id: str, settings: Annotated[Settings, Depends()]):
+async def get_pipeline_progress(
+    project_id: str,
+    settings: Annotated[Settings, Depends(get_app_settings)]
+):
     """Stream pipeline progress via Server-Sent Events.
 
     Args:

@@ -10,6 +10,7 @@ from pydantic import BaseModel, HttpUrl
 
 from demoforge.config import Settings
 from demoforge.models import AudienceType, ProjectState
+from demoforge.server.dependencies import get_app_settings
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
 
@@ -94,7 +95,7 @@ def save_project(project: ProjectState, settings: Settings) -> None:
 @router.post("", response_model=ProjectResponse)
 async def create_project(
     request: CreateProjectRequest,
-    settings: Annotated[Settings, Depends()],
+    settings: Annotated[Settings, Depends(get_app_settings)],
 ) -> ProjectResponse:
     """Create a new demo project.
 
@@ -142,7 +143,7 @@ async def create_project(
 
 @router.get("", response_model=list[ProjectResponse])
 async def list_projects(
-    settings: Annotated[Settings, Depends()],
+    settings: Annotated[Settings, Depends(get_app_settings)],
 ) -> list[ProjectResponse]:
     """List all projects.
 
@@ -182,7 +183,7 @@ async def list_projects(
 @router.get("/{project_id}", response_model=ProjectState)
 async def get_project(
     project_id: str,
-    settings: Annotated[Settings, Depends()],
+    settings: Annotated[Settings, Depends(get_app_settings)],
 ) -> ProjectState:
     """Get project details.
 
@@ -199,7 +200,7 @@ async def get_project(
 @router.delete("/{project_id}")
 async def delete_project(
     project_id: str,
-    settings: Annotated[Settings, Depends()],
+    settings: Annotated[Settings, Depends(get_app_settings)],
 ) -> dict[str, str]:
     """Delete a project.
 

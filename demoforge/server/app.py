@@ -3,7 +3,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from demoforge.config import Settings
+from demoforge.config import Settings, get_settings
+from demoforge.server.dependencies import set_app_settings
 from demoforge.server.routes import health, pipeline, projects
 
 
@@ -17,9 +18,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         Configured FastAPI app
     """
     if settings is None:
-        from demoforge.config import get_settings
-
         settings = get_settings()
+
+    # Set global settings for dependency injection
+    set_app_settings(settings)
 
     app = FastAPI(
         title="DemoForge API",
@@ -38,12 +40,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
-    # Dependency injection for settings
-    def get_settings_dependency() -> Settings:
-        return settings
-
-    app.dependency_overrides[Settings] = get_settings_dependency
 
     # Register routes
     app.include_router(health.router)

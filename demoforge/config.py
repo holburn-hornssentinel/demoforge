@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from demoforge.models import (
@@ -80,6 +80,21 @@ class Settings(BaseSettings):
         default_factory=lambda: ["http://localhost:7501", "http://localhost:5173"],
         validation_alias="CORS_ORIGINS",
     )
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v: Any) -> list[str]:
+        """Parse CORS origins from comma-separated string or list.
+
+        Args:
+            v: Input value (string or list)
+
+        Returns:
+            List of CORS origins
+        """
+        if isinstance(v, str):
+            return [origin.strip() for origin in v.split(",")]
+        return v
 
     def to_app_config(self) -> AppConfig:
         """Convert Settings to AppConfig model."""
