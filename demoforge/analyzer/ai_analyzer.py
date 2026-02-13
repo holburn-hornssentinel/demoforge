@@ -65,6 +65,9 @@ class AIAnalyzer:
         Raises:
             google.api_core.exceptions.GoogleAPIError: If API call fails
         """
+        from datetime import datetime
+
+        current_time = datetime.now().isoformat()
         prompt = f"""Analyze this GitHub repository and extract key product information for creating a demo video.
 
 Repository: {repo_metadata.get('name', 'Unknown')}
@@ -107,7 +110,7 @@ Return a JSON object with this exact structure:
   "github_url": "{repo_metadata.get('url', '')}",
   "website_url": null,
   "demo_urls": ["string"],
-  "analyzed_at": "{import datetime; datetime.datetime.now().isoformat()}"
+  "analyzed_at": "{current_time}"
 }}
 """
 
@@ -131,6 +134,9 @@ Return a JSON object with this exact structure:
         Raises:
             google.api_core.exceptions.GoogleAPIError: If API call fails
         """
+        from datetime import datetime
+
+        current_time = datetime.now().isoformat()
         content_data = web_content.get("content", {})
         url = web_content.get("url", "Unknown")
 
@@ -193,7 +199,7 @@ Return a JSON object with this exact structure:
   "github_url": null,
   "website_url": "{url}",
   "demo_urls": ["string"],
-  "analyzed_at": "{import datetime; datetime.datetime.now().isoformat()}"
+  "analyzed_at": "{current_time}"
 }}
 """
 
