@@ -34,9 +34,15 @@ class Settings(BaseSettings):
     )
 
     # API Keys
-    anthropic_api_key: str = Field(..., validation_alias="ANTHROPIC_API_KEY")
-    claude_model: str = Field(
-        default="claude-sonnet-4-5-20250929", validation_alias="CLAUDE_MODEL"
+    google_api_key: str = Field(..., validation_alias="GOOGLE_API_KEY")
+    gemini_model: str = Field(
+        default="gemini-2.0-flash-exp", validation_alias="GEMINI_MODEL"
+    )
+
+    # Google Vision API (optional)
+    vision_enabled: bool = Field(default=False, validation_alias="VISION_ENABLED")
+    google_application_credentials: str | None = Field(
+        None, validation_alias="GOOGLE_APPLICATION_CREDENTIALS"
     )
 
     # TTS Configuration
@@ -104,8 +110,10 @@ class Settings(BaseSettings):
         )
 
         return AppConfig(
-            anthropic_api_key=self.anthropic_api_key,
-            claude_model=self.claude_model,
+            google_api_key=self.google_api_key,
+            gemini_model=self.gemini_model,
+            vision_enabled=self.vision_enabled,
+            google_application_credentials=self.google_application_credentials,
             tts=TTSConfig(
                 engine=self.tts_engine,
                 voice=self.tts_voice,

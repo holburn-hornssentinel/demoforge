@@ -1,30 +1,59 @@
-"""AI-powered product analysis using Claude structured outputs."""
+"""AI-powered product analysis using Gemini structured outputs."""
 
 from typing import Any
 
-from anthropic import Anthropic
+import google.generativeai as genai
 from pydantic import HttpUrl
 
-from demoforge.models import AnalysisResult, ProductFeature
+from demoforge.models import AnalysisResult
 
 
 class AIAnalyzer:
-    """Analyzes product information using Claude AI with structured outputs."""
+    """Analyzes product information using Gemini AI with structured outputs."""
 
-    def __init__(self, api_key: str, model: str = "claude-sonnet-4-5-20250929") -> None:
+    def __init__(self, api_key: str, model: str = "gemini-2.0-flash-exp") -> None:
         """Initialize the AI analyzer.
 
         Args:
-            api_key: Anthropic API key
-            model: Claude model ID to use
+            api_key: Google API key
+            model: Gemini model ID to use
         """
-        self.client = Anthropic(api_key=api_key)
-        self.model = model
+        genai.configure(api_key=api_key)
+        self.model = genai.GenerativeModel(
+            model_name=model,
+            generation_config={
+                "temperature": 0.3,
+                "top_p": 0.95,
+                "top_k": 40,
+                "max_output_tokens": 8192,
+                "response_mime_type": "application/json",
+            },
+        )
+
+    def _generate_with_schema(self, prompt: str) -> AnalysisResult:
+        """Generate structured output using Gemini.
+
+        Args:
+            prompt: Analysis prompt
+
+        Returns:
+            Structured analysis result
+
+        Raises:
+            google.api_core.exceptions.GoogleAPIError: If API call fails
+        """
+        # Generate response with JSON schema
+        response = self.model.generate_content(prompt)
+
+        # Parse JSON response into Pydantic model
+        import json
+        data = json.loads(response.text)
+        return AnalysisResult.model_validate(data)
 
     def analyze_repo(
         self, repo_content: str, repo_metadata: dict[str, Any]
     ) -> AnalysisResult:
-        """Analyze a GitHub repository using Claude.
+        """Analyze a GitHub repository using Gemini.
 
         Args:
             repo_content: Packed repository content from repomix
@@ -34,7 +63,7 @@ class AIAnalyzer:
             Structured analysis result
 
         Raises:
-            anthropic.APIError: If API call fails
+            google.api_core.exceptions.GoogleAPIError: If API call fails
         """
         prompt = f"""Analyze this GitHub repository and extract key product information for creating a demo video.
 
@@ -43,7 +72,7 @@ Owner: {repo_metadata.get('owner', 'Unknown')}
 URL: {repo_metadata.get('url', 'Unknown')}
 
 Repository Content:
-{repo_content[:50000]}  # Limit to ~50k chars to avoid context limits
+{repo_content[:50000]}
 
 Your task:
 1. Identify the product name and tagline
@@ -57,24 +86,32 @@ Your task:
 
 Focus on information that would be valuable for creating a compelling demo video.
 Mark features as "demo_worthy: true" if they should be shown visually in the video.
+
+Return a JSON object with this exact structure:
+{{
+  "product_name": "string",
+  "tagline": "string",
+  "category": "string",
+  "target_users": ["string"],
+  "key_features": [
+    {{
+      "name": "string",
+      "description": "string",
+      "importance": 1-10,
+      "demo_worthy": boolean
+    }}
+  ],
+  "tech_stack": ["string"],
+  "use_cases": ["string"],
+  "competitive_advantage": "string",
+  "github_url": "{repo_metadata.get('url', '')}",
+  "website_url": null,
+  "demo_urls": ["string"],
+  "analyzed_at": "{import datetime; datetime.datetime.now().isoformat()}"
+}}
 """
 
-        # Use structured outputs via messages.parse()
-        response = self.client.messages.create(
-            model=self.model,
-            max_tokens=4000,
-            temperature=0.3,  # Lower temperature for more consistent extraction
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt,
-                }
-            ],
-            response_model=AnalysisResult,
-        )
-
-        # The response is already parsed into AnalysisResult
-        result = response
+        result = self._generate_with_schema(prompt)
 
         # Override with known metadata
         if repo_metadata.get("url"):
@@ -83,7 +120,7 @@ Mark features as "demo_worthy: true" if they should be shown visually in the vid
         return result
 
     def analyze_website(self, web_content: dict[str, Any]) -> AnalysisResult:
-        """Analyze a website using Claude.
+        """Analyze a website using Gemini.
 
         Args:
             web_content: Website content extracted by WebAnalyzer
@@ -92,7 +129,7 @@ Mark features as "demo_worthy: true" if they should be shown visually in the vid
             Structured analysis result
 
         Raises:
-            anthropic.APIError: If API call fails
+            google.api_core.exceptions.GoogleAPIError: If API call fails
         """
         content_data = web_content.get("content", {})
         url = web_content.get("url", "Unknown")
@@ -135,23 +172,32 @@ Your task:
 
 Focus on information that would be valuable for creating a compelling demo video.
 Mark features as "demo_worthy: true" if they should be shown visually in the video.
+
+Return a JSON object with this exact structure:
+{{
+  "product_name": "string",
+  "tagline": "string",
+  "category": "string",
+  "target_users": ["string"],
+  "key_features": [
+    {{
+      "name": "string",
+      "description": "string",
+      "importance": 1-10,
+      "demo_worthy": boolean
+    }}
+  ],
+  "tech_stack": ["string"],
+  "use_cases": ["string"],
+  "competitive_advantage": "string",
+  "github_url": null,
+  "website_url": "{url}",
+  "demo_urls": ["string"],
+  "analyzed_at": "{import datetime; datetime.datetime.now().isoformat()}"
+}}
 """
 
-        # Use structured outputs via messages.parse()
-        response = self.client.messages.create(
-            model=self.model,
-            max_tokens=4000,
-            temperature=0.3,
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt,
-                }
-            ],
-            response_model=AnalysisResult,
-        )
-
-        result = response
+        result = self._generate_with_schema(prompt)
 
         # Override with known metadata
         if url:
@@ -176,7 +222,7 @@ Mark features as "demo_worthy: true" if they should be shown visually in the vid
             Combined structured analysis result
 
         Raises:
-            anthropic.APIError: If API call fails
+            google.api_core.exceptions.GoogleAPIError: If API call fails
             ValueError: If neither repo nor web content provided
         """
         if not repo_content and not web_content:
@@ -234,25 +280,33 @@ Your task:
 
 Synthesize information from all provided sources to create a comprehensive analysis.
 Mark features as "demo_worthy: true" if they should be shown visually in the video.
+
+Return a JSON object with this exact structure:
+{
+  "product_name": "string",
+  "tagline": "string",
+  "category": "string",
+  "target_users": ["string"],
+  "key_features": [
+    {
+      "name": "string",
+      "description": "string",
+      "importance": 1-10,
+      "demo_worthy": boolean
+    }
+  ],
+  "tech_stack": ["string"],
+  "use_cases": ["string"],
+  "competitive_advantage": "string",
+  "github_url": null,
+  "website_url": null,
+  "demo_urls": ["string"],
+  "analyzed_at": "ISO datetime string"
+}
 """)
 
         prompt = "\n".join(prompt_parts)
-
-        # Use structured outputs via messages.parse()
-        response = self.client.messages.create(
-            model=self.model,
-            max_tokens=4000,
-            temperature=0.3,
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt,
-                }
-            ],
-            response_model=AnalysisResult,
-        )
-
-        result = response
+        result = self._generate_with_schema(prompt)
 
         # Override with known metadata
         if repo_metadata and repo_metadata.get("url"):

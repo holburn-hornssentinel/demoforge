@@ -43,7 +43,8 @@ demoforge generate \
 ### 🤖 AI-Powered Analysis
 - Analyzes GitHub repos via Repomix (respects `.gitignore`)
 - Scrapes websites with Playwright
-- Claude Sonnet 4.5 generates context-aware scripts
+- **Gemini 2.0 Flash** generates context-aware scripts (40x cheaper than alternatives)
+- **Google Vision API** analyzes screenshots for auto-highlighting
 - Audience-specific templates (investor, customer, developer, technical)
 
 ### 🎙️ Voice Synthesis
@@ -74,7 +75,7 @@ demoforge generate \
 git clone https://github.com/horns/demoforge.git
 cd demoforge
 cp .env.example .env
-# Edit .env and add your ANTHROPIC_API_KEY
+# Edit .env and add your GOOGLE_API_KEY (get from https://aistudio.google.com/app/apikey)
 
 docker compose up -d
 
@@ -167,7 +168,8 @@ demoforge serve --host 0.0.0.0 --port 7500
 
 See `.env.example` for all options. Key variables:
 
-- `ANTHROPIC_API_KEY` — Required for AI analysis and script generation
+- `GOOGLE_API_KEY` — Required for AI analysis and script generation ([Get key](https://aistudio.google.com/app/apikey))
+- `VISION_ENABLED` — Enable Google Vision for screenshot intelligence (requires service account)
 - `TTS_ENGINE` — `kokoro` (default), `edge`, or `pocket`
 - `TTS_VOICE` — Voice ID (see [Voice Options](#voice-options))
 - `OUTPUT_DIR` — Where to save rendered videos
@@ -179,7 +181,12 @@ Alternatively, create `demoforge.yml`:
 
 ```yaml
 api:
-  anthropic_key: sk-ant-...
+  google_key: AIzaSy...
+  gemini_model: gemini-2.0-flash-exp
+
+vision:
+  enabled: false
+  credentials: /path/to/service-account.json
 
 tts:
   engine: kokoro
@@ -246,7 +253,8 @@ docker compose up --build
 
 ## Tech Stack
 
-- **AI**: Claude Sonnet 4.5 (structured outputs)
+- **AI**: Google Gemini 2.0 Flash (analysis + script generation)
+- **Vision**: Google Vision API (screenshot intelligence, OCR, object detection)
 - **TTS**: Kokoro (primary), Edge TTS (fallback), Pocket TTS (cloning)
 - **Browser**: Playwright (screenshots + video capture)
 - **Video**: FFmpeg (assembly), Pillow (overlays)

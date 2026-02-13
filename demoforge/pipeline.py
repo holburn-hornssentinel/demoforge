@@ -47,12 +47,12 @@ class Pipeline:
             viewport_height=config.browser.viewport_height,
         )
         self.ai_analyzer = AIAnalyzer(
-            api_key=config.anthropic_api_key, model=config.claude_model
+            api_key=config.google_api_key, model=config.gemini_model
         )
 
         # Initialize script generator
         self.script_generator = ScriptGenerator(
-            api_key=config.anthropic_api_key, model=config.claude_model
+            api_key=config.google_api_key, model=config.gemini_model
         )
 
         # Pipeline state

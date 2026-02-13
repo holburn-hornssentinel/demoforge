@@ -304,9 +304,13 @@ class AppConfig(BaseModel):
     """Application configuration."""
 
     # API
-    anthropic_api_key: str = Field(..., description="Anthropic API key")
-    claude_model: str = Field(
-        default="claude-sonnet-4-5-20250929", description="Claude model ID"
+    google_api_key: str = Field(..., description="Google API key")
+    gemini_model: str = Field(
+        default="gemini-2.0-flash-exp", description="Gemini model ID"
+    )
+    vision_enabled: bool = Field(default=False, description="Enable Google Vision API")
+    google_application_credentials: str | None = Field(
+        None, description="Path to Google service account JSON"
     )
 
     # TTS

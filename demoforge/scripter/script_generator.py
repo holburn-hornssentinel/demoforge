@@ -1,8 +1,9 @@
-"""Script generation using Claude AI and Jinja2 templates."""
+"""Script generation using Gemini AI and Jinja2 templates."""
 
+import json
 from pathlib import Path
 
-from anthropic import Anthropic
+import google.generativeai as genai
 from jinja2 import Environment, FileSystemLoader
 
 from demoforge.models import AnalysisResult, AudienceType, DemoScript
@@ -10,23 +11,32 @@ from demoforge.scripter.duration import DurationEnforcer
 
 
 class ScriptGenerator:
-    """Generates demo video scripts using Claude AI."""
+    """Generates demo video scripts using Gemini AI."""
 
     def __init__(
         self,
         api_key: str,
-        model: str = "claude-sonnet-4-5-20250929",
+        model: str = "gemini-2.0-flash-exp",
         templates_dir: Path | None = None,
     ) -> None:
         """Initialize the script generator.
 
         Args:
-            api_key: Anthropic API key
-            model: Claude model ID to use
+            api_key: Google API key
+            model: Gemini model ID to use
             templates_dir: Path to Jinja2 templates directory
         """
-        self.client = Anthropic(api_key=api_key)
-        self.model = model
+        genai.configure(api_key=api_key)
+        self.model = genai.GenerativeModel(
+            model_name=model,
+            generation_config={
+                "temperature": 0.7,
+                "top_p": 0.95,
+                "top_k": 40,
+                "max_output_tokens": 8192,
+                "response_mime_type": "application/json",
+            },
+        )
 
         # Set up Jinja2 environment
         if templates_dir is None:
@@ -90,22 +100,24 @@ class ScriptGenerator:
             Generated demo script
 
         Raises:
-            anthropic.APIError: If API call fails
+            google.api_core.exceptions.GoogleAPIError: If API call fails
         """
         system_prompt = self._build_system_prompt(analysis, audience, target_duration)
         enforcer = DurationEnforcer(target_duration)
 
-        user_prompt = f"""Create a {target_duration}-second demo video script with the following structure:
+        user_prompt = f"""{system_prompt}
+
+Create a {target_duration}-second demo video script with the following structure:
 
 1. **Title**: Catchy video title
 2. **Intro** (opening narration): Hook the audience in the first 5 seconds
 3. **Scenes**: 5-10 scenes, each with:
-   - Unique scene ID
+   - Unique scene ID (e.g., "scene_1", "scene_2")
    - Scene type (screenshot, title_card, code_snippet, diagram)
    - Narration text
    - Duration in seconds
    - URL to capture (if screenshot) OR visual_content (if title_card/code)
-   - Optional actions (highlight, zoom, pan)
+   - Optional actions (highlight, zoom, pan) - empty array for now
 4. **Outro** (closing narration): Wrap up with impact
 5. **Call to action**: What should viewers do next?
 
@@ -115,27 +127,39 @@ IMPORTANT:
 - Use demo_urls from analysis where appropriate: {analysis.demo_urls}
 - Narration should be natural and spoken-word friendly (avoid complex sentences)
 - Scene durations should sum to approximately {target_duration} seconds
+- Set audience to "{audience.value}"
+- Set total_duration to {target_duration}
+- Set generated_at to current ISO datetime
 
-Return a complete DemoScript object.
+Return a JSON object with this exact structure:
+{{
+  "title": "string",
+  "audience": "{audience.value}",
+  "total_duration": {target_duration},
+  "scenes": [
+    {{
+      "id": "scene_1",
+      "scene_type": "screenshot",
+      "narration": "string",
+      "duration_seconds": 10.0,
+      "url": "https://..." or null,
+      "visual_content": "",
+      "actions": [],
+      "metadata": {{}}
+    }}
+  ],
+  "intro": "string",
+  "outro": "string",
+  "call_to_action": "string",
+  "generated_at": "ISO datetime string"
+}}
 """
 
         for attempt in range(max_retries + 1):
-            # Generate script using structured outputs
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=8000,
-                temperature=0.7,
-                system=system_prompt,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": user_prompt,
-                    }
-                ],
-                response_model=DemoScript,
-            )
-
-            script = response
+            # Generate script
+            response = self.model.generate_content(user_prompt)
+            data = json.loads(response.text)
+            script = DemoScript.model_validate(data)
 
             # Check if duration is within bounds
             if enforcer.is_within_bounds(script.total_words):
@@ -171,7 +195,7 @@ Please regenerate the script with adjusted narration to hit the target duration.
             Refined demo script
 
         Raises:
-            anthropic.APIError: If API call fails
+            google.api_core.exceptions.GoogleAPIError: If API call fails
         """
         prompt = f"""You previously generated this demo video script:
 
@@ -191,20 +215,10 @@ CTA: {script.call_to_action}
 User Feedback: {feedback}
 
 Please refine the script based on the feedback while maintaining the target duration ({script.total_duration} seconds).
-Return a complete updated DemoScript object.
+
+Return a complete updated DemoScript object in JSON format with the same structure as before.
 """
 
-        response = self.client.messages.create(
-            model=self.model,
-            max_tokens=8000,
-            temperature=0.7,
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt,
-                }
-            ],
-            response_model=DemoScript,
-        )
-
-        return response
+        response = self.model.generate_content(prompt)
+        data = json.loads(response.text)
+        return DemoScript.model_validate(data)
