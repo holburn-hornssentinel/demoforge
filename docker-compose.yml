@@ -1,0 +1,68 @@
+version: '3.9'
+
+services:
+  # Backend API service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: demoforge_app
+    ports:
+      - "7500:7500"
+    volumes:
+      # Hot reload for Python code
+      - ./demoforge:/app/demoforge:rw
+      - ./tests:/app/tests:rw
+      # Persist output and cache
+      - demoforge_output:/app/output
+      - demoforge_cache:/app/cache
+      # Environment variables
+      - ./.env:/app/.env:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      - OUTPUT_DIR=/app/output
+      - CACHE_DIR=/app/cache
+    env_file:
+      - .env
+    networks:
+      - demoforge-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7500/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    command: >
+      uvicorn demoforge.server.app:create_app
+      --factory
+      --host 0.0.0.0
+      --port 7500
+      --reload
+
+  # Frontend service (development only)
+  frontend:
+    image: node:22-alpine
+    container_name: demoforge_frontend
+    working_dir: /app
+    ports:
+      - "7501:7501"
+    volumes:
+      - ./frontend:/app:rw
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:7500
+    networks:
+      - demoforge-network
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 7501"
+    depends_on:
+      - app
+
+volumes:
+  demoforge_output:
+    driver: local
+  demoforge_cache:
+    driver: local
+
+networks:
+  demoforge-network:
+    driver: bridge

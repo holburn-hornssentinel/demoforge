@@ -1,0 +1,95 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "demoforge"
+version = "0.1.0"
+description = "Automated product demo video generator from GitHub repos and websites"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+authors = [
+    { name = "Horns", email = "horns@example.com" }
+]
+keywords = ["demo", "video", "automation", "ai", "tts"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Video",
+]
+
+dependencies = [
+    "anthropic>=0.40.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "typer[all]>=0.15.0",
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.7.0",
+    "playwright>=1.49.0",
+    "pillow>=11.1.0",
+    "jinja2>=3.1.5",
+    "pyyaml>=6.0.2",
+    "httpx>=0.28.0",
+    "pysrt>=1.1.2",
+    "rich>=13.9.0",
+    "kokoro-onnx>=0.2.0",
+    "edge-tts>=6.1.18",
+    "sse-starlette>=2.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "ruff>=0.8.0",
+    "mypy>=1.14.0",
+    "types-pyyaml>=6.0.0",
+    "types-pillow>=10.2.0",
+]
+
+[project.scripts]
+demoforge = "demoforge.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/horns/demoforge"
+Documentation = "https://github.com/horns/demoforge#readme"
+Repository = "https://github.com/horns/demoforge"
+Issues = "https://github.com/horns/demoforge/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["demoforge"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "A", "C4", "SIM"]
+ignore = ["E501"]  # Line too long (handled by formatter)
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+asyncio_mode = "auto"
+addopts = "-v --cov=demoforge --cov-report=term-missing"

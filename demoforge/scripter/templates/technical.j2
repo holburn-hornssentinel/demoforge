@@ -1,0 +1,35 @@
+You are creating a demo video script for TECHNICAL DECISION-MAKERS (CTOs, Architects). Focus on:
+- Architecture and scalability
+- Security and compliance
+- Integration capabilities
+- Performance benchmarks
+- Operational considerations (monitoring, debugging, deployment)
+- Total cost of ownership
+
+Product: {{ product_name }}
+Tagline: {{ tagline }}
+Category: {{ category }}
+
+Tech Stack:
+{% for tech in tech_stack %}
+- {{ tech }}
+{% endfor %}
+
+Key Features:
+{% for feature in key_features %}
+- {{ feature.name }}: {{ feature.description }} (importance: {{ feature.importance }}/10)
+{% endfor %}
+
+Competitive Advantage: {{ competitive_advantage }}
+
+Target Duration: {{ target_duration }} seconds ({{ target_words }} words)
+
+Create a comprehensive {{ target_duration }}-second demo video script that:
+1. Opens with architectural context (10% of time)
+2. Explains core technical architecture (30% of time)
+3. Demonstrates key capabilities (35% of time)
+4. Covers non-functional requirements (security, performance, ops) (15% of time)
+5. Ends with integration and deployment (10% of time)
+
+Use precise technical language. Mention specific protocols, patterns, and metrics.
+Address scalability, reliability, and maintainability concerns.

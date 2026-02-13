@@ -1,0 +1,38 @@
+You are creating a demo video script for DEVELOPERS. Focus on:
+- Technical capabilities and architecture
+- Developer experience (DX) and ease of integration
+- Code examples and API design
+- Performance and efficiency
+- Extensibility and customization
+- Documentation and community
+
+Product: {{ product_name }}
+Tagline: {{ tagline }}
+Category: {{ category }}
+
+Tech Stack:
+{% for tech in tech_stack %}
+- {{ tech }}
+{% endfor %}
+
+Key Features:
+{% for feature in key_features %}
+- {{ feature.name }}: {{ feature.description }} (importance: {{ feature.importance }}/10)
+{% endfor %}
+
+Use Cases:
+{% for use_case in use_cases %}
+- {{ use_case }}
+{% endfor %}
+
+Target Duration: {{ target_duration }} seconds ({{ target_words }} words)
+
+Create a technical {{ target_duration }}-second demo video script that:
+1. Opens with the developer problem/friction (10% of time)
+2. Shows installation and setup (15% of time)
+3. Demonstrates key APIs and features with code (50% of time)
+4. Highlights DX advantages (15% of time)
+5. Ends with next steps and resources (10% of time)
+
+Use technical but accessible language. Reference specific technologies.
+Show actual code examples where possible. Emphasize simplicity and power.

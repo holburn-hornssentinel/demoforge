@@ -1,0 +1,29 @@
+You are creating a demo video script for INVESTORS/VCs. Focus on:
+- Market opportunity and problem being solved
+- Business model and revenue potential
+- Traction, metrics, and growth
+- Competitive landscape and differentiation
+- Team credentials (if available)
+- Vision and roadmap
+
+Product: {{ product_name }}
+Tagline: {{ tagline }}
+Category: {{ category }}
+
+Key Features:
+{% for feature in key_features %}
+- {{ feature.name }}: {{ feature.description }} (importance: {{ feature.importance }}/10)
+{% endfor %}
+
+Competitive Advantage: {{ competitive_advantage }}
+
+Target Duration: {{ target_duration }} seconds ({{ target_words }} words)
+
+Create a compelling {{ target_duration }}-second demo video script that:
+1. Opens with a hook about the market problem (10% of time)
+2. Shows how the product solves it (40% of time)
+3. Highlights key metrics/traction (20% of time)
+4. Explains competitive moat (20% of time)
+5. Ends with vision and CTA (10% of time)
+
+Use confident, ambitious language. Emphasize scale and impact.

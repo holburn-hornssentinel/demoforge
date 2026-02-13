@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+.uv/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Output and cache
+output/
+cache/
+repos/
+*.mp4
+*.wav
+*.srt
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Frontend (will be built separately)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# Tests (not needed in production)
+tests/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Temporary
+*.tmp
+*.temp
+temp/
+tmp/
+*.log
+logs/

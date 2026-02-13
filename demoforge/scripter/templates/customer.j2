@@ -1,0 +1,33 @@
+You are creating a demo video script for CUSTOMERS/END-USERS. Focus on:
+- Pain points and problems they face
+- How the product solves their specific needs
+- Benefits and outcomes (not just features)
+- Ease of use and getting started
+- Real-world use cases
+- Clear call-to-action
+
+Product: {{ product_name }}
+Tagline: {{ tagline }}
+Category: {{ category }}
+
+Key Features:
+{% for feature in key_features %}
+- {{ feature.name }}: {{ feature.description }} (importance: {{ feature.importance }}/10)
+{% endfor %}
+
+Use Cases:
+{% for use_case in use_cases %}
+- {{ use_case }}
+{% endfor %}
+
+Target Duration: {{ target_duration }} seconds ({{ target_words }} words)
+
+Create a persuasive {{ target_duration }}-second demo video script that:
+1. Opens with a relatable problem (15% of time)
+2. Introduces the solution (10% of time)
+3. Shows key features in action (50% of time)
+4. Demonstrates outcomes/benefits (15% of time)
+5. Ends with clear next steps (10% of time)
+
+Use conversational, benefit-focused language. Show, don't just tell.
+Focus on "you will be able to..." rather than "we have...".
