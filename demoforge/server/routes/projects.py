@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, HttpUrl
 
 from demoforge.config import Settings
@@ -219,3 +220,38 @@ async def delete_project(
 
     project_file.unlink()
     return {"status": "deleted", "project_id": project_id}
+
+
+@router.get("/{project_id}/video")
+async def get_project_video(
+    project_id: str,
+    settings: Annotated[Settings, Depends(get_app_settings)],
+) -> FileResponse:
+    """Get the generated video file for a project.
+
+    Args:
+        project_id: Project identifier
+        settings: Application settings
+
+    Returns:
+        Video file as MP4
+
+    Raises:
+        HTTPException: If project not found or video not generated
+    """
+    # Load project
+    project = await load_project(project_id, settings)
+
+    # Check if video exists
+    if not project.output_path or not project.output_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail="Video not generated yet. Run the pipeline first."
+        )
+
+    # Return video file
+    return FileResponse(
+        path=str(project.output_path),
+        media_type="video/mp4",
+        filename=f"{project.name}_demo.mp4"
+    )

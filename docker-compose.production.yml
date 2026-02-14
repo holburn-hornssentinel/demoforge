@@ -1,0 +1,57 @@
+version: '3.9'
+
+services:
+  # Production DemoForge service
+  app:
+    image: demoforge:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: demoforge_prod
+    restart: always
+    ports:
+      - "7500:7500"
+    volumes:
+      # Persist output and cache (named volumes for production)
+      - demoforge_output:/app/output
+      - demoforge_cache:/app/cache
+      # Environment file (create from .env.example)
+      - ./.env.production:/app/.env:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      - OUTPUT_DIR=/app/output
+      - CACHE_DIR=/app/cache
+      - NODE_ENV=production
+    env_file:
+      - .env.production
+    networks:
+      - demoforge-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:7500/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '2'
+          memory: 4G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  demoforge_output:
+    driver: local
+  demoforge_cache:
+    driver: local
+
+networks:
+  demoforge-network:
+    driver: bridge

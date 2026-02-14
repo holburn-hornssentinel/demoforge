@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+@source '../src/**/*.{js,ts,jsx,tsx}';
+@source '../index.html';
+
 * {
   margin: 0;
   padding: 0;

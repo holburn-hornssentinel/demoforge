@@ -74,6 +74,12 @@ class Settings(BaseSettings):
 
     # Pipeline Settings
     enable_caching: bool = Field(default=True, validation_alias="ENABLE_CACHING")
+    cache_ttl_hours: int = Field(default=72, validation_alias="CACHE_TTL_HOURS")
+    vision_enabled: bool = Field(default=False, validation_alias="VISION_ENABLED")
+    default_language: str = Field(default="en", validation_alias="DEFAULT_LANGUAGE")
+    brand_config_path: Path | None = Field(
+        None, validation_alias="BRAND_CONFIG_PATH"
+    )
     parallel_screenshots: int = Field(
         default=3, validation_alias="PARALLEL_SCREENSHOTS"
     )
@@ -169,10 +175,10 @@ def merge_yaml_config(settings: Settings, yaml_config: dict[str, Any]) -> None:
     """
     # API configuration
     if "api" in yaml_config:
-        if "anthropic_key" in yaml_config["api"]:
-            settings.anthropic_api_key = yaml_config["api"]["anthropic_key"]
-        if "claude_model" in yaml_config["api"]:
-            settings.claude_model = yaml_config["api"]["claude_model"]
+        if "google_key" in yaml_config["api"]:
+            settings.google_api_key = yaml_config["api"]["google_key"]
+        if "gemini_model" in yaml_config["api"]:
+            settings.gemini_model = yaml_config["api"]["gemini_model"]
 
     # TTS configuration
     if "tts" in yaml_config:

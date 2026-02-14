@@ -1,11 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { getProject, executePipeline, deleteProject } from '../lib/api'
+import { useSSE } from '../hooks/useSSE'
+import { PipelineProgress, PipelineProgressData } from '../components/PipelineProgress'
+import { VideoPlayer } from '../components/VideoPlayer'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 
 export default function ProjectDetail() {
   const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const [showProgress, setShowProgress] = useState(false)
+  const [showExecuteDialog, setShowExecuteDialog] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const { data: project, isLoading, error } = useQuery({
     queryKey: ['projects', projectId],
@@ -13,12 +21,33 @@ export default function ProjectDetail() {
     enabled: !!projectId,
   })
 
+  // SSE connection for pipeline progress
+  const sseUrl = showProgress && projectId
+    ? `${import.meta.env.VITE_API_URL || 'http://localhost:7500'}/api/pipeline/progress/${projectId}`
+    : null
+
+  const { data: progressData, isConnected } = useSSE<PipelineProgressData>(sseUrl, {
+    enabled: showProgress,
+    reconnect: true,
+  })
+
   const executeMutation = useMutation({
     mutationFn: executePipeline,
     onSuccess: () => {
+      setShowProgress(true)
       queryClient.invalidateQueries({ queryKey: ['projects', projectId] })
     },
   })
+
+  // Stop showing progress when pipeline completes or fails
+  useEffect(() => {
+    if (progressData?.stage === 'complete' || progressData?.stage === 'failed') {
+      setTimeout(() => {
+        setShowProgress(false)
+        queryClient.invalidateQueries({ queryKey: ['projects', projectId] })
+      }, 2000)
+    }
+  }, [progressData, projectId, queryClient])
 
   const deleteMutation = useMutation({
     mutationFn: deleteProject,
@@ -45,15 +74,21 @@ export default function ProjectDetail() {
   }
 
   const handleExecute = () => {
-    if (confirm('Start pipeline execution?')) {
-      executeMutation.mutate({ project_id: project.id })
-    }
+    setShowExecuteDialog(true)
+  }
+
+  const confirmExecute = () => {
+    setShowExecuteDialog(false)
+    executeMutation.mutate({ project_id: project.id })
   }
 
   const handleDelete = () => {
-    if (confirm('Are you sure you want to delete this project?')) {
-      deleteMutation.mutate(project.id)
-    }
+    setShowDeleteDialog(true)
+  }
+
+  const confirmDelete = () => {
+    setShowDeleteDialog(false)
+    deleteMutation.mutate(project.id)
   }
 
   return (
@@ -83,6 +118,30 @@ export default function ProjectDetail() {
           </button>
         </div>
       </div>
+
+      {/* Pipeline Progress */}
+      {showProgress && (
+        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Pipeline Progress
+            {isConnected && (
+              <span className="ml-2 inline-flex items-center">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></span>
+                <span className="text-sm font-normal text-gray-500">Live</span>
+              </span>
+            )}
+          </h3>
+          <PipelineProgress data={progressData} />
+        </div>
+      )}
+
+      {/* Video Player - Show when complete */}
+      {project.current_stage === 'complete' && project.output_path && (
+        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Generated Video</h3>
+          <VideoPlayer projectId={project.id} projectName={project.name} />
+        </div>
+      )}
 
       {/* Project Details */}
       <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
@@ -191,6 +250,29 @@ export default function ProjectDetail() {
           </div>
         </div>
       )}
+
+      {/* Confirmation Dialogs */}
+      <ConfirmDialog
+        isOpen={showExecuteDialog}
+        title="Start Pipeline Execution?"
+        message="This will analyze the repository/website, generate a script, capture screenshots, synthesize voice narration, and assemble the final video. This may take several minutes."
+        confirmLabel="Start Pipeline"
+        cancelLabel="Cancel"
+        onConfirm={confirmExecute}
+        onCancel={() => setShowExecuteDialog(false)}
+        variant="primary"
+      />
+
+      <ConfirmDialog
+        isOpen={showDeleteDialog}
+        title="Delete Project?"
+        message="This will permanently delete this project and all associated data. This action cannot be undone."
+        confirmLabel="Delete Project"
+        cancelLabel="Cancel"
+        onConfirm={confirmDelete}
+        onCancel={() => setShowDeleteDialog(false)}
+        variant="danger"
+      />
     </div>
   )
 }

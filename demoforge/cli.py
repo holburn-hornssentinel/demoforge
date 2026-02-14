@@ -12,6 +12,7 @@ from rich.panel import Panel
 from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
+from demoforge.cache import PipelineCache
 from demoforge.config import get_settings
 from demoforge.models import AudienceType, PipelineProgress, PipelineStage
 from demoforge.pipeline import create_pipeline
@@ -405,6 +406,93 @@ def version() -> None:
     from demoforge import __version__
 
     console.print(f"[cyan]DemoForge[/cyan] version [bold]{__version__}[/bold]")
+
+
+# Cache management commands
+cache_app = typer.Typer(
+    name="cache",
+    help="Manage pipeline cache",
+    add_completion=False,
+)
+app.add_typer(cache_app, name="cache")
+
+
+@cache_app.command("clear")
+def cache_clear() -> None:
+    """Clear all pipeline cache entries.
+
+    Example:
+        demoforge cache clear
+    """
+    console.print("[yellow]Clearing pipeline cache...[/yellow]")
+
+    # Load settings
+    settings = get_settings()
+    cache = PipelineCache(
+        cache_dir=settings.cache_dir,
+        enabled=True,
+        ttl_hours=settings.cache_ttl_hours,
+    )
+
+    # Clear cache
+    count = cache.clear_all()
+    console.print(f"[green]✓ Cleared {count} cache entries[/green]")
+
+
+@cache_app.command("stats")
+def cache_stats() -> None:
+    """Show pipeline cache statistics.
+
+    Example:
+        demoforge cache stats
+    """
+    # Load settings
+    settings = get_settings()
+    cache = PipelineCache(
+        cache_dir=settings.cache_dir,
+        enabled=True,
+        ttl_hours=settings.cache_ttl_hours,
+    )
+
+    # Get stats
+    stats = cache.get_stats()
+
+    console.print("\n[bold]Pipeline Cache Statistics[/bold]\n")
+
+    table = Table(show_header=False, box=None)
+    table.add_column("Field", style="cyan")
+    table.add_column("Value")
+
+    table.add_row("Status", "Enabled" if stats["enabled"] else "Disabled")
+    table.add_row("TTL", f"{stats['ttl_hours']} hours")
+    table.add_row("Cached Projects", str(stats["total_projects"]))
+    table.add_row("Cached Stages", str(stats["total_stages"]))
+    table.add_row("Cache Size", f"{stats['total_size_mb']} MB")
+
+    console.print(table)
+    console.print()
+
+
+@cache_app.command("cleanup")
+def cache_cleanup() -> None:
+    """Remove expired cache entries.
+
+    Example:
+        demoforge cache cleanup
+    """
+    console.print("[yellow]Removing expired cache entries...[/yellow]")
+
+    # Load settings
+    settings = get_settings()
+    cache = PipelineCache(
+        cache_dir=settings.cache_dir,
+        enabled=True,
+        ttl_hours=settings.cache_ttl_hours,
+    )
+
+    # Cleanup expired
+    count = cache.cleanup_expired()
+    console.print(f"[green]✓ Removed {count} expired entries[/green]")
 
 
 if __name__ == "__main__":

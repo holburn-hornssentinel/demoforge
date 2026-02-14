@@ -43,9 +43,17 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv for fast Python package management
+# Create non-root user
+RUN groupadd -g 1001 demoforge && \
+    useradd -m -u 1001 -g demoforge demoforge
+
+# Install uv for non-root user
+USER demoforge
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="/root/.local/bin:$PATH"
+ENV PATH="/home/demoforge/.local/bin:$PATH"
+
+# Switch back to root for setup
+USER root
 
 # Copy project files
 COPY pyproject.toml .
@@ -68,8 +76,10 @@ RUN npm install -g repomix
 COPY demoforge/ demoforge/
 COPY assets/ assets/
 
-# Create output and cache directories
-RUN mkdir -p /app/output /app/cache
+# Create output and cache directories with correct ownership
+RUN mkdir -p /app/output /app/cache /app/cache/analytics /app/cache/pipeline /app/cache/repos /app/cache/auth /app/cache/projects && \
+    chown -R demoforge:demoforge /app && \
+    chmod -R 755 /app/cache
 
 # Expose API port
 EXPOSE 7500
@@ -80,6 +90,9 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 # Activate venv for all commands
 ENV PATH="/app/.venv/bin:$PATH"
+
+# Switch to non-root user for runtime
+USER demoforge
 
 # Default command (can be overridden)
 CMD ["uvicorn", "demoforge.server.app:create_app", "--factory", "--host", "0.0.0.0", "--port", "7500", "--reload"]

@@ -55,7 +55,8 @@ services:
       - demoforge-network
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 7501"
     depends_on:
-      - app
+      app:
+        condition: service_healthy
 
 volumes:
   demoforge_output:

@@ -54,6 +54,31 @@ class SceneType(str, Enum):
     DIAGRAM = "diagram"  # Architecture diagram
 
 
+class Language(str, Enum):
+    """Supported languages for narration and subtitles."""
+
+    ENGLISH = "en"
+    SPANISH = "es"
+    FRENCH = "fr"
+    GERMAN = "de"
+    ITALIAN = "it"
+    PORTUGUESE = "pt"
+    RUSSIAN = "ru"
+    JAPANESE = "ja"
+    KOREAN = "ko"
+    CHINESE_SIMPLIFIED = "zh-CN"
+    CHINESE_TRADITIONAL = "zh-TW"
+    ARABIC = "ar"
+    HINDI = "hi"
+    DUTCH = "nl"
+    POLISH = "pl"
+    TURKISH = "tr"
+    SWEDISH = "sv"
+    DANISH = "da"
+    NORWEGIAN = "no"
+    FINNISH = "fi"
+
+
 # =============================================================================
 # Analysis Models
 # =============================================================================
@@ -131,6 +156,7 @@ class DemoScript(BaseModel):
 
     title: str = Field(..., description="Demo video title")
     audience: AudienceType = Field(..., description="Target audience")
+    language: Language = Field(default=Language.ENGLISH, description="Narration language")
     total_duration: float = Field(..., gt=0, description="Total video length in seconds")
     scenes: list[Scene] = Field(..., min_length=1, description="Ordered list of scenes")
     intro: str = Field(..., description="Opening narration")
@@ -241,7 +267,9 @@ class ProjectState(BaseModel):
     audience: AudienceType = Field(
         default=AudienceType.DEVELOPER, description="Target audience"
     )
+    language: Language = Field(default=Language.ENGLISH, description="Narration language")
     target_length: int = Field(default=90, description="Target video length in seconds")
+    brand_config_path: Path | None = Field(None, description="Path to brand config YAML")
 
     # Pipeline outputs
     analysis: AnalysisResult | None = None
@@ -267,8 +295,8 @@ class ProjectState(BaseModel):
 class TTSConfig(BaseModel):
     """Text-to-speech configuration."""
 
-    engine: TTSEngine = Field(default=TTSEngine.KOKORO, description="TTS engine to use")
-    voice: str = Field(default="af", description="Voice ID")
+    engine: TTSEngine = Field(default=TTSEngine.EDGE, description="TTS engine to use")
+    voice: str = Field(default="en-US-AriaNeural", description="Voice ID")
     speed: float = Field(default=1.0, ge=0.5, le=2.0, description="Speech speed")
     voice_sample_path: Path | None = Field(
         None, description="Path to voice sample for cloning"
@@ -328,6 +356,7 @@ class AppConfig(BaseModel):
 
     # Pipeline
     enable_caching: bool = Field(default=True, description="Enable pipeline caching")
+    cache_ttl_hours: int = Field(default=72, description="Cache TTL in hours")
     parallel_screenshots: int = Field(
         default=3, description="Number of parallel screenshot captures"
     )

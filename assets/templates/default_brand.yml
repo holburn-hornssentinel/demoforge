@@ -1,0 +1,29 @@
+# DemoForge Default Brand Template
+# Copy and customize this file to brand your demo videos
+
+# Brand Identity
+name: DemoForge
+logo_path: null  # Path to your logo (PNG/SVG)
+
+# Color Palette (hex format)
+primary_color: "#3B82F6"      # Primary brand color (Blue)
+secondary_color: "#8B5CF6"    # Secondary color (Purple)
+accent_color: "#10B981"       # Accent color (Green)
+background_color: "#0F172A"   # Background color (Slate 900)
+text_color: "#F8FAFC"         # Text color (Slate 50)
+
+# Typography
+font_family: Arial
+title_font_size: 72           # pixels
+subtitle_font_size: 36        # pixels
+body_font_size: 24            # pixels
+
+# Watermark Settings
+watermark_enabled: true
+watermark_text: "Generated with DemoForge"
+watermark_position: bottom-right  # top-left, top-right, bottom-left, bottom-right
+watermark_opacity: 128        # 0-255
+
+# Lower Third Overlays
+lower_third_enabled: true
+lower_third_background: null  # Uses primary_color if null
