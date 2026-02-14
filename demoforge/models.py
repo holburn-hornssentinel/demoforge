@@ -112,8 +112,8 @@ class AnalysisResult(BaseModel):
     )
     github_url: HttpUrl | None = Field(None, description="GitHub repository URL")
     website_url: HttpUrl | None = Field(None, description="Product website URL")
-    demo_urls: list[HttpUrl] = Field(
-        default_factory=list, description="URLs to capture for demo"
+    demo_urls: list[str] = Field(
+        default_factory=list, description="URLs to capture for demo (as strings)"
     )
     analyzed_at: datetime = Field(default_factory=datetime.now)
 

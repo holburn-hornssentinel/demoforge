@@ -79,6 +79,7 @@ class ScriptGenerator:
         audience: AudienceType = AudienceType.DEVELOPER,
         target_duration: int = 90,
         max_retries: int = 2,
+        language: str = "en",
     ) -> DemoScript:
         """Generate a demo video script.
 
@@ -87,6 +88,7 @@ class ScriptGenerator:
             audience: Target audience type
             target_duration: Target video duration in seconds
             max_retries: Maximum retries if duration is off-target
+            language: Language code for narration (e.g., "en", "es", "fr")
 
         Returns:
             Generated demo script
@@ -118,8 +120,10 @@ IMPORTANT:
 - Each scene should be 8-15 seconds
 - Use demo_urls from analysis where appropriate: {analysis.demo_urls}
 - Narration should be natural and spoken-word friendly (avoid complex sentences)
+- ALL narration (intro, outro, scenes) must be in language code: {language}
 - Scene durations should sum to approximately {target_duration} seconds
 - Set audience to "{audience.value}"
+- Set language to "{language}"
 - Set total_duration to {target_duration}
 - Set generated_at to current ISO datetime
 
