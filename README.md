@@ -29,14 +29,15 @@ demoforge generate \
 | **Automation** | Fully automated from repo URL | Manual recording | Manual | Manual |
 | **CLI/CI-CD** | ✅ Built for automation | ❌ | ❌ | ❌ |
 | **Self-hosted** | ✅ Your infrastructure | ❌ SaaS only | ❌ | ❌ |
-| **Code analysis** | ✅ Repomix + Claude | ❌ | ❌ | ❌ |
+| **Code analysis** | ✅ Repomix + Gemini | ❌ | ❌ | ❌ |
 | **Open source** | ✅ MIT license | ❌ | ❌ | ❌ |
 
 **Perfect for**:
-- Cybersecurity companies (keep demos on your infra)
+- Cybersecurity companies (keep demos on your infrastructure)
 - Developer tools (auto-generate docs videos)
 - CI/CD pipelines (generate demos on every release)
 - Sales teams (custom demos per prospect)
+- Open source projects (automated release videos)
 
 ## Features
 
@@ -72,7 +73,7 @@ demoforge generate \
 
 ```bash
 # Clone and start the stack
-git clone https://github.com/horns/demoforge.git
+git clone https://github.com/holburn-hornssentinel/demoforge.git
 cd demoforge
 cp .env.example .env
 # Edit .env and add your GOOGLE_API_KEY (get from https://aistudio.google.com/app/apikey)
@@ -132,7 +133,7 @@ demoforge serve  # Starts on http://localhost:7500
 ├──────────────┼──────────────────────────────────────────┤
 │  app         │  FastAPI + Typer CLI                     │
 │              │  Playwright + FFmpeg + Kokoro TTS        │
-│              │  Claude API (structured outputs)         │
+│              │  Gemini API (structured outputs)         │
 │              │  Port 7500                               │
 ├──────────────┼──────────────────────────────────────────┤
 │  volumes     │  demoforge_output, demoforge_cache       │
@@ -240,16 +241,33 @@ docker compose up --build
 
 ## Roadmap
 
+**Phase 1 (Complete)** ✅
 - [x] Core pipeline (analyze, script, capture, voice, assemble)
 - [x] CLI interface with Rich progress
-- [x] Web UI with SSE progress
-- [ ] Voice cloning (Pocket TTS)
-- [ ] AI-driven screenshot annotations
-- [ ] Hash-based caching
-- [ ] GitHub Actions workflow template
-- [ ] Video analytics (view tracking)
-- [ ] Multi-language support
-- [ ] Custom brand templates
+- [x] Web UI with React 19 + TypeScript
+- [x] Docker containerization
+- [x] Gemini 2.0 Flash integration
+
+**Phase 2 (Complete)** ✅
+- [x] Voice cloning (Pocket TTS engine)
+- [x] AI-driven screenshot annotations (VisionAnalyzer)
+- [x] Hash-based pipeline caching (72h TTL)
+- [x] GitHub Actions workflow template
+- [x] Video analytics (view tracking + dashboard)
+- [x] Multi-language support (20 languages)
+- [x] Custom brand templates
+- [x] SSE real-time progress updates
+- [x] Authenticated browser capture
+- [x] Production Docker multi-stage builds
+- [x] 100% test coverage (112 tests passing)
+
+**Phase 3 (Planned)**
+- [ ] Mermaid diagram rendering (replace placeholder)
+- [ ] Advanced brand customization UI
+- [ ] Team collaboration features
+- [ ] API rate limiting and quotas
+- [ ] Webhook notifications
+- [ ] S3/cloud storage integration
 
 ## Tech Stack
 
@@ -277,8 +295,8 @@ Contributions welcome! Please:
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/horns/demoforge/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/horns/demoforge/discussions)
+- **Issues**: [GitHub Issues](https://github.com/holburn-hornssentinel/demoforge/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/holburn-hornssentinel/demoforge/discussions)
 
 ---
 
