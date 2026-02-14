@@ -1,8 +1,10 @@
 """AI-powered product analysis using Gemini structured outputs."""
 
+from datetime import datetime
 from typing import Any
 
-import google.generativeai as genai
+from google import genai
+from google.genai.types import GenerateContentConfig, GoogleSearch
 from pydantic import HttpUrl
 
 from demoforge.models import AnalysisResult
@@ -18,17 +20,8 @@ class AIAnalyzer:
             api_key: Google API key
             model: Gemini model ID to use
         """
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel(
-            model_name=model,
-            generation_config={
-                "temperature": 0.3,
-                "top_p": 0.95,
-                "top_k": 40,
-                "max_output_tokens": 8192,
-                "response_mime_type": "application/json",
-            },
-        )
+        self.client = genai.Client(api_key=api_key)
+        self.model_id = model
 
     def _generate_with_schema(self, prompt: str) -> AnalysisResult:
         """Generate structured output using Gemini.
@@ -42,8 +35,18 @@ class AIAnalyzer:
         Raises:
             google.api_core.exceptions.GoogleAPIError: If API call fails
         """
-        # Generate response with JSON schema
-        response = self.model.generate_content(prompt)
+        # Generate response with structured output
+        response = self.client.models.generate_content(
+            model=self.model_id,
+            contents=prompt,
+            config=GenerateContentConfig(
+                temperature=0.3,
+                top_p=0.95,
+                top_k=40,
+                max_output_tokens=8192,
+                response_mime_type="application/json",
+            ),
+        )
 
         # Parse JSON response into Pydantic model
         import json
@@ -65,8 +68,6 @@ class AIAnalyzer:
         Raises:
             google.api_core.exceptions.GoogleAPIError: If API call fails
         """
-        from datetime import datetime
-
         current_time = datetime.now().isoformat()
         prompt = f"""Analyze this GitHub repository and extract key product information for creating a demo video.
 
@@ -134,8 +135,6 @@ Return a JSON object with this exact structure:
         Raises:
             google.api_core.exceptions.GoogleAPIError: If API call fails
         """
-        from datetime import datetime
-
         current_time = datetime.now().isoformat()
         content_data = web_content.get("content", {})
         url = web_content.get("url", "Unknown")

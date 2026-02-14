@@ -3,7 +3,8 @@
 import json
 from pathlib import Path
 
-import google.generativeai as genai
+from google import genai
+from google.genai.types import GenerateContentConfig
 from jinja2 import Environment, FileSystemLoader
 
 from demoforge.models import AnalysisResult, AudienceType, DemoScript
@@ -26,17 +27,8 @@ class ScriptGenerator:
             model: Gemini model ID to use
             templates_dir: Path to Jinja2 templates directory
         """
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel(
-            model_name=model,
-            generation_config={
-                "temperature": 0.7,
-                "top_p": 0.95,
-                "top_k": 40,
-                "max_output_tokens": 8192,
-                "response_mime_type": "application/json",
-            },
-        )
+        self.client = genai.Client(api_key=api_key)
+        self.model_id = model
 
         # Set up Jinja2 environment
         if templates_dir is None:
@@ -157,7 +149,18 @@ Return a JSON object with this exact structure:
 
         for attempt in range(max_retries + 1):
             # Generate script
-            response = self.model.generate_content(user_prompt)
+            response = self.client.models.generate_content(
+                model=self.model_id,
+                contents=user_prompt,
+                config=GenerateContentConfig(
+                    temperature=0.7,
+                    top_p=0.95,
+                    top_k=40,
+                    max_output_tokens=8192,
+                    response_mime_type="application/json",
+                ),
+            )
+
             data = json.loads(response.text)
             script = DemoScript.model_validate(data)
 
@@ -219,6 +222,14 @@ Please refine the script based on the feedback while maintaining the target dura
 Return a complete updated DemoScript object in JSON format with the same structure as before.
 """
 
-        response = self.model.generate_content(prompt)
+        response = self.client.models.generate_content(
+            model=self.model_id,
+            contents=prompt,
+            config=GenerateContentConfig(
+                temperature=0.7,
+                response_mime_type="application/json",
+            ),
+        )
+
         data = json.loads(response.text)
         return DemoScript.model_validate(data)
